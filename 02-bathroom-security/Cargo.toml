@@ -1,0 +1,6 @@
+[package]
+name = "02-bathroom-security"
+version = "0.1.0"
+authors = ["Jake Goulding <jake.goulding@gmail.com>"]
+
+[dependencies]
