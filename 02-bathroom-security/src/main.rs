@@ -22,8 +22,14 @@ impl Direction {
     }
 }
 
+trait Keypad {
+    fn next(&self, d: Direction) -> Self;
+
+    fn as_str(&self) -> &'static str;
+}
+
 #[derive(Debug, Copy, Clone, PartialEq)]
-enum Keycode {
+enum StandardKeypad {
     One,
     Two,
     Three,
@@ -35,9 +41,9 @@ enum Keycode {
     Nine,
 }
 
-impl Keycode {
-    fn up(&self) -> Keycode {
-        use Keycode::*;
+impl StandardKeypad {
+    fn up(&self) -> StandardKeypad {
+        use StandardKeypad::*;
 
         match *self {
             Four  => One,
@@ -50,8 +56,8 @@ impl Keycode {
         }
     }
 
-    fn down(&self) -> Keycode {
-        use Keycode::*;
+    fn down(&self) -> StandardKeypad {
+        use StandardKeypad::*;
 
         match *self {
             One   => Four,
@@ -64,8 +70,8 @@ impl Keycode {
         }
     }
 
-    fn left(&self) -> Keycode {
-        use Keycode::*;
+    fn left(&self) -> StandardKeypad {
+        use StandardKeypad::*;
 
         match *self {
             Two   => One,
@@ -78,8 +84,8 @@ impl Keycode {
         }
     }
 
-    fn right(&self) -> Keycode {
-        use Keycode::*;
+    fn right(&self) -> StandardKeypad {
+        use StandardKeypad::*;
 
         match *self {
             One   => Two,
@@ -91,8 +97,10 @@ impl Keycode {
             other => other,
         }
     }
+}
 
-    fn next(&self, d: Direction) -> Keycode {
+impl Keypad for StandardKeypad {
+    fn next(&self, d: Direction) -> StandardKeypad {
         use Direction::*;
 
         match d {
@@ -103,29 +111,148 @@ impl Keycode {
         }
     }
 
-    fn to_digit(&self) -> u8 {
-        use Keycode::*;
+    fn as_str(&self) -> &'static str {
+        use StandardKeypad::*;
+
         match *self {
-            One => 1,
-            Two => 2,
-            Three => 3,
-            Four => 4,
-            Five => 5,
-            Six => 6,
-            Seven => 7,
-            Eight => 8,
-            Nine => 9,
+            One   => "1",
+            Two   => "2",
+            Three => "3",
+            Four  => "4",
+            Five  => "5",
+            Six   => "6",
+            Seven => "7",
+            Eight => "8",
+            Nine  => "9",
         }
     }
 }
 
-fn the_code(input: &str) -> Vec<u8> {
-    let mut key = Keycode::Five;
+#[derive(Debug, Copy, Clone, PartialEq)]
+enum FancyKeypad {
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven,
+    Eight,
+    Nine,
+    A,
+    B,
+    C,
+    D,
+}
+
+impl FancyKeypad {
+    fn up(&self) -> FancyKeypad {
+        use FancyKeypad::*;
+
+        match *self {
+            Three => One,
+            Six   => Two,
+            Seven => Three,
+            Eight => Four,
+            A     => Six,
+            B     => Seven,
+            C     => Eight,
+            D     => B,
+            other => other,
+        }
+    }
+
+    fn down(&self) -> FancyKeypad {
+        use FancyKeypad::*;
+
+        match *self {
+            One   => Three,
+            Two   => Six,
+            Three => Seven,
+            Four  => Eight,
+            Six   => A,
+            Seven => B,
+            Eight => C,
+            B     => D,
+            other => other,
+        }
+    }
+
+    fn left(&self) -> FancyKeypad {
+        use FancyKeypad::*;
+
+        match *self {
+            Three => Two,
+            Four  => Three,
+            Six   => Five,
+            Seven => Six,
+            Eight => Seven,
+            Nine  => Eight,
+            B     => A,
+            C     => B,
+            other => other,
+        }
+    }
+
+    fn right(&self) -> FancyKeypad {
+        use FancyKeypad::*;
+
+        match *self {
+            Two   => Three,
+            Three => Four,
+            Five  => Six,
+            Six   => Seven,
+            Seven => Eight,
+            Eight => Nine,
+            A     => B,
+            B     => C,
+            other => other,
+        }
+    }
+}
+
+impl Keypad for FancyKeypad {
+    fn next(&self, d: Direction) -> FancyKeypad {
+        use Direction::*;
+
+        match d {
+            Up    => self.up(),
+            Down  => self.down(),
+            Left  => self.left(),
+            Right => self.right()
+        }
+    }
+
+    fn as_str(&self) -> &'static str {
+        use FancyKeypad::*;
+
+        match *self {
+            One   => "1",
+            Two   => "2",
+            Three => "3",
+            Four  => "4",
+            Five  => "5",
+            Six   => "6",
+            Seven => "7",
+            Eight => "8",
+            Nine  => "9",
+            A     => "A",
+            B     => "B",
+            C     => "C",
+            D     => "D",
+        }
+    }
+}
+
+fn the_code<K>(input: &str, initial_key: K) -> String
+    where K: Keypad
+{
+    let mut key = initial_key;
     input.lines().map(|l| {
         for direction in l.trim().chars().map(Direction::from_char) {
             key = key.next(direction.expect("Invalid direction"));
         }
-        key.to_digit()
+        key.as_str()
     }).collect()
 }
 
@@ -136,7 +263,8 @@ DDDUDDRRDRRRUULDRULDLDLURRRUURULRUDDRLLLLURRLRULDLURRULDRUDRRLLLLDULRDLUUURDDLDL
 DDUURRLULDLULULLDUDDRURDDRLRDULUURURRLURDLRRDUUDLULDRDLDLRLULLRULLDRLDRRULUDRLDURUURLLDLLDDLUULLRLRULRLUURDDDDDRLDRLLLDLULDLDLULRRURLLLLLLRLUDLRRLRULUULLLLURDLLRLLDDUDLLULDLLURUUDLRDRDUDDDRDDUULRLLDDDLLRLURLUDLULRRUUUULLDLDLLLDRLUDRDRDLUDLRUDRDRUDRDLLDDLRRLRDLDURDLDRUUUDRLULUULDURDLUUUDDDDDLDRDURDLULDDLLUDUURRUDDLURUDDLRLUUDURUDUULULUDLDLUURDULURURULDDDLUUUUDLUUDUDLLLRDDLRDDLRURRRLLLULLURULLRDLLDRULRDDULULRLUDRRRDULRLLUDUULLRDRDDDULULRURULDLDLDRDLDUDRDULLUUUUUDLRDURDUUULLLRUULLRUULDRRUUDLLLULLUURLDDLUULLRLRLRDRLLLRLURDDURUDUULULDLRLRLLUDURRURDRUDLRDLLRDDRDUULRDRLLRULLUDDRLDLDDDDUDRDD
 URDLUDUDLULURUDRLUDLUDLRLRLLDDDDDLURURUURLRDUDLRRUUDUURDURUULDRRRDDDLDUURRRDLRULRRDLRUDUDLDDDLLLRLRLRUUUUUULURRRLRLUDULURLDLLDUUDDRUDLDUDRRLULLULLDURDDRRLLRLDLLLLRLULLDDDDLDULLRDUURDUDURRUULLDRULUDLUULUUDDLDDRDLULLULDLDRLDLRULLRLURDURUDRLDURDRULRLLLLURRURLRURUDUDRRUDUUDURDDRRDRLURLURRLDRRLLRLRUDLRLLRLDLDDRDLURLLDURUDDUUDRRLRUDLUDULDRUDDRDRDRURDLRLLRULDDURLUUUUDLUDRRURDDUUURRLRRDDLULLLDLRULRRRLDRRURRURRUUDDDLDRRURLRRRRDLDLDUDURRDDLLLUULDDLRLURLRRURDRUULDDDUDRDRUDRRLRLLLLLURDULDUDRLULDRLUULUDDDDUDDRDDLDDRLLRULRRURDDDRDDLDLULRDDRRURRUDRDDDDRURDRRURUUDUDDUURULLDRDULURUDUD";
 
-    println!("{:?}", the_code(input));
+    println!("{:?}", the_code(input, StandardKeypad::Five));
+    println!("{:?}", the_code(input, FancyKeypad::Five));
 }
 
 #[test]
@@ -146,5 +274,15 @@ fn example_1() {
                  LURDL
                  UUUUD";
 
-    assert_eq!(the_code(input), [1, 9, 8, 5]);
+    assert_eq!(the_code(input, StandardKeypad::Five), "1985");
+}
+
+#[test]
+fn example_2() {
+    let input = "ULL
+                 RRDDD
+                 LURDL
+                 UUUUD";
+
+    assert_eq!(the_code(input, FancyKeypad::Five), "5DB3");
 }
