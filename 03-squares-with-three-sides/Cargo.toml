@@ -1,0 +1,6 @@
+[package]
+name = "03-squares-with-three-sides"
+version = "0.1.0"
+authors = ["Jake Goulding <jake.goulding@gmail.com>"]
+
+[dependencies]
