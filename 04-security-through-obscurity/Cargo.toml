@@ -1,0 +1,7 @@
+[package]
+authors = ["Jake Goulding <jake.goulding@gmail.com>"]
+name = "04-security-through-obscurity"
+version = "0.1.0"
+
+[dependencies]
+revord = "0.0.2"
