@@ -7,6 +7,7 @@ use std::str::FromStr;
 use revord::RevOrd;
 
 struct Room {
+    id: String,
     frequency: BTreeMap<char, usize>,
     sector: u16,
     code: String,
@@ -24,6 +25,10 @@ impl Room {
     fn is_real(&self) -> bool {
         self.common_letters().into_iter().eq(self.code.chars())
     }
+
+    fn decrypted_id(&self) -> String {
+        shift_cipher(&self.id, self.sector as usize)
+    }
 }
 
 impl FromStr for Room {
@@ -37,14 +42,15 @@ impl FromStr for Room {
 
         let code = parts.next().ok_or("Missing code".to_string())?;
         let sector = parts.next().ok_or("Missing sector".to_string())?;
-        let characters = parts.next().ok_or("Missing characters".to_string())?;
+        let id = parts.next().ok_or("Missing characters".to_string())?;
 
         let mut frequency = BTreeMap::new();
-        for c in characters.chars().filter(|c| c.is_alphabetic()) {
+        for c in id.chars().filter(|c| c.is_alphabetic()) {
             *frequency.entry(c).or_insert(0) += 1;
         }
 
         Ok(Room {
+            id: id.into(),
             frequency: frequency,
             sector: sector.parse()?,
             code: code.into(),
@@ -52,17 +58,31 @@ impl FromStr for Room {
     }
 }
 
+fn shift_cipher(s: &str, count: usize) -> String {
+    let count = (count % 26) as u8;
+    s.bytes().map(|byte| {
+        let shifted_byte = match byte {
+            b'-' => b' ',
+            b => ((((b - b'a') + count) % 26) + b'a'),
+        };
+        shifted_byte as char
+    }).collect()
+}
 
 fn main() {
     let input = include_str!("input.txt");
 
-    let sum: u64 = input.lines()
+    let valid_rooms: Vec<_> = input.lines()
         .filter_map(|l| l.parse::<Room>().ok())
         .filter(Room::is_real)
-        .map(|r| r.sector_id() as u64)
-        .sum();
+        .collect();
 
+    let sum: u64 = valid_rooms.iter().map(|r| r.sector_id() as u64).sum();
     println!("Sum of valid sectors: {}", sum);
+
+    for r in valid_rooms.iter().find(|r| r.decrypted_id() == "northpole object storage") {
+        println!("Storage in sector {}", r.sector_id());
+    }
 }
 
 #[test]
@@ -89,4 +109,9 @@ fn example3() {
 fn example4() {
     let room = Room::from_str("totally-real-room-200[decoy]").expect("Unable to parse room");
     assert!(!room.is_real())
+}
+
+#[test]
+fn shift_cipher_example() {
+    assert_eq!(shift_cipher("qzmt-zixmtkozy-ivhz", 343), "very encrypted name");
 }
