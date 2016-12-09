@@ -4,4 +4,5 @@ name = "09-explosives-in-cyberspace"
 version = "0.1.0"
 
 [dependencies]
+lazy_static = "0.2.2"
 regex = "0.1.80"
