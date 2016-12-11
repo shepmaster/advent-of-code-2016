@@ -212,7 +212,13 @@ fn main() {
     let factory = factory.expect("Unable to parse factory");
 
     let bot = factory.bot_for(Value(61), Value(17));
-    println!("{:?}", bot);
+    println!("{:?} is responsible for 61 and 17", bot);
+
+    let a = factory.output(BinNumber(0)).expect("No output in 0");
+    let b = factory.output(BinNumber(1)).expect("No output in 1");
+    let c = factory.output(BinNumber(2)).expect("No output in 2");
+
+    println!("three values were {}", a.0 * b.0 * c.0);
 }
 
 #[test]
