@@ -1,0 +1,7 @@
+[package]
+authors = ["Jake Goulding <jake.goulding@gmail.com>"]
+name = "10-balance-bots"
+version = "0.1.0"
+
+[dependencies]
+regex = "0.1.80"
