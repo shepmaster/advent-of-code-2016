@@ -133,7 +133,7 @@ impl FloorState {
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct State {
     floor_state: FloorState,
-    prev: Vec<FloorState>,
+    depth: usize,
 }
 
 impl State {
@@ -143,7 +143,7 @@ impl State {
                 floors: floors,
                 elevator: 0,
             },
-            prev: Vec::new(),
+            depth: 0,
         }
     }
 
@@ -160,7 +160,7 @@ impl State {
     }
 
     fn depth(&self) -> usize {
-        self.prev.len()
+        self.depth
     }
 }
 
@@ -179,7 +179,7 @@ fn run_problem(initial_state: State) -> Option<usize> {
     while let Some(state) = queue.pop_front() {
         cnt += 1;
 
-        if cnt % 250 == 0 {
+        if cnt % 1000 == 0 {
             println!("{}: queue is {}, processed {}", state.depth(), queue.len(), cnt);
         }
 
@@ -196,12 +196,9 @@ fn run_problem(initial_state: State) -> Option<usize> {
                 if seen.contains(&next_floor_state) {
                     already_seen_cnt += 1
                 } else {
-                    let mut next_prev = state.prev.clone();
-                    next_prev.push(state.floor_state.clone());
-
                     let next_state = State {
                         floor_state: next_floor_state.clone(),
-                        prev: next_prev,
+                        depth: state.depth + 1,
                     };
 
                     if next_state.complete() {
@@ -227,7 +224,10 @@ fn main() {
     use Component::*;
 
     let floors = vec![
-        Floor::new(vec![Generator("promethium"), Microchip("promethium")]),
+        Floor::new(vec![
+            Generator("promethium"), Microchip("promethium"),
+            Generator("elerium"), Microchip("elerium"), Generator("dilithium"), Microchip("dilithium"),
+        ]),
         Floor::new(vec![Generator("cobalt"), Generator("curium"), Generator("ruthenium"), Generator("plutonium")]),
         Floor::new(vec![Microchip("cobalt"), Microchip("curium"), Microchip("ruthenium"), Microchip("plutonium")]),
         Floor::new(vec![]),
