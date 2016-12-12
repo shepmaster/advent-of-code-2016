@@ -1,0 +1,7 @@
+[package]
+authors = ["Jake Goulding <jake.goulding@gmail.com>"]
+name = "11-radioisotope-thermoelectric-generators"
+version = "0.1.0"
+
+[dependencies]
+itertools = "0.5.7"
