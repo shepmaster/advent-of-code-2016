@@ -60,6 +60,10 @@ impl Machine {
     fn register(&self, register: Register) -> i32 {
         self.registers[register]
     }
+
+    fn set_register(&mut self, register: Register, value: i32) {
+        self.registers[register] = value;
+    }
 }
 
 #[derive(Debug, PartialEq, Default)]
@@ -178,18 +182,33 @@ impl FromStr for Register {
     }
 }
 
+fn parse_code(input: &str) -> Result<Vec<Instruction>> {
+    input.lines().map(|l| l.trim().parse()).collect()
+}
+
 fn run_code(input: &str) -> Result<Machine> {
-    let program = input.lines().map(|l| l.trim().parse()).collect::<Result<Vec<Instruction>>>()?;
+    run_code_extended(input, |_| {})
+}
 
-    let mut machine = Machine::new();
-    machine.run(&program);
-
-    Ok(machine)
+fn run_code_extended<F>(input: &str, initialize: F) -> Result<Machine>
+    where F: FnOnce(&mut Machine)
+{
+    parse_code(input).map(|program| {
+        let mut machine = Machine::new();
+        initialize(&mut machine);
+        machine.run(&program);
+        machine
+    })
 }
 
 fn main() {
     let input = include_str!("input.txt");
+
     let machine = run_code(input).expect("Unable to execute program");
+    println!("{}", machine.register(Register::A));
+
+    let machine = run_code_extended(input, |machine| machine.set_register(Register::C, 1))
+        .expect("Unable to execute program");
     println!("{}", machine.register(Register::A));
 }
 
