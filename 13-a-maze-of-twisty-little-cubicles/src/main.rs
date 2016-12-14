@@ -5,8 +5,10 @@ use std::collections::{VecDeque, BTreeSet};
 fn main() {
     let maze = Maze::new(1362);
     let path = maze.shortest_path(Point { x: 31, y: 39 });
+    let steps = maze.locations_within_steps(50);
 
     println!("The path was {:?}", path);
+    println!("Within 50 steps, there are {} unique steps", steps);
 }
 
 #[derive(Debug)]
@@ -24,6 +26,40 @@ impl From<(u32, u32)> for Point {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct State(Point, usize);
+
+const INITIAL_POINT: Point = Point { x: 1, y: 1};
+const INITIAL_DEPTH: usize = 0;
+
+#[derive(Debug, Default)]
+struct MazeQueue {
+    queue: VecDeque<State>,
+    seen: BTreeSet<Point>,
+}
+
+impl MazeQueue {
+    fn new() -> Self {
+        Self::default()
+    }
+
+    fn push_if_new(&mut self, point: Point, depth: usize) {
+        if !self.seen.contains(&point) {
+            self.seen.insert(point);
+            self.queue.push_back(State(point, depth));
+        }
+    }
+
+    fn pop(&mut self) -> Option<State> {
+        self.queue.pop_front()
+    }
+
+    fn unique_visited(&self) -> usize {
+        let seen_but_not_considered = self.queue.len();
+        self.seen.len() - seen_but_not_considered
+    }
+}
+
 impl Maze {
     fn new(favorite_number: u32) -> Self {
         Maze(favorite_number)
@@ -36,6 +72,8 @@ impl Maze {
         sum.count_ones() % 2 == 0
     }
 
+    // TODO: Could this be made into an iterator? Not as-is, as we
+    // can't return references to the stack-allocated arrays.
     fn next_steps(&self, point: Point) -> BTreeSet<Point> {
         let Point { x, y } = point;
 
@@ -53,24 +91,17 @@ impl Maze {
     }
 
     fn shortest_path(&self, end_point: Point) -> Option<usize> {
-        struct State(Point, usize);
-        const INITIAL_POINT: Point = Point { x: 1, y: 1};
-        const INITIAL_DEPTH: usize = 0;
-
         if end_point == INITIAL_POINT {
             return Some(INITIAL_DEPTH);
         }
 
-        let mut queue = VecDeque::new();
-        let mut seen = BTreeSet::new();
+        let mut queue = MazeQueue::new();
         let mut max_depth_seen = 0;
 
-        seen.insert(INITIAL_POINT);
-        queue.push_back(State(INITIAL_POINT, INITIAL_DEPTH));
+        queue.push_if_new(INITIAL_POINT, INITIAL_DEPTH);
 
-        while let Some(State(point, depth)) = queue.pop_front() {
+        while let Some(State(point, depth)) = queue.pop() {
             if max_depth_seen != depth {
-                println!("At depth {}, queue size is {}", depth, queue.len());
                 max_depth_seen = depth;
             }
 
@@ -81,14 +112,33 @@ impl Maze {
                     return Some(depth);
                 }
 
-                if !seen.contains(&point) {
-                    seen.insert(point);
-                    queue.push_back(State(point, depth));
-                }
+                queue.push_if_new(point, depth);
             }
         }
 
         None
+    }
+
+    fn locations_within_steps(&self, steps: usize) -> usize {
+        let mut queue = MazeQueue::new();
+
+        queue.push_if_new(INITIAL_POINT, INITIAL_DEPTH);
+
+        while let Some(State(point, depth)) = queue.pop() {
+            if depth > steps {
+                break;
+            }
+
+            let depth = depth + 1;
+
+            for point in self.next_steps(point) {
+                queue.push_if_new(point, depth);
+            }
+        }
+
+        // We popped one off the queue and visited it before stopping iteration
+        // This may be incorrect if we run out of nodes?
+        queue.unique_visited() - 1
     }
 }
 
@@ -137,5 +187,15 @@ mod test {
     fn shortest_path() {
         let maze = Maze::new(10);
         assert_eq!(maze.shortest_path(Point { x: 7, y: 4 }), Some(11));
+    }
+
+    #[test]
+    fn locations_within_steps() {
+        let maze = Maze::new(10);
+        assert_eq!(maze.locations_within_steps(0), 1);
+        assert_eq!(maze.locations_within_steps(1), 3);
+        assert_eq!(maze.locations_within_steps(2), 5);
+        assert_eq!(maze.locations_within_steps(3), 6);
+        assert_eq!(maze.locations_within_steps(4), 9);
     }
 }
