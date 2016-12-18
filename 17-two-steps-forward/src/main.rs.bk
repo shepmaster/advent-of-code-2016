@@ -1,0 +1,72 @@
+extern crate hex;
+extern crate md5;
+
+use hex::ToHex;
+
+fn open(c: char) -> bool {
+    match c {
+        'b' | 'c' | 'd' | 'e' | 'f' => true,
+        _ => false,
+    }
+}
+
+fn md5hex(s: &str) -> String {
+    md5::compute(s.as_bytes()).to_hex()
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+enum Move {
+    Up,
+    Down, Left, Right,
+}
+
+impl Move {
+    fn to_char(&self) -> char {
+        use Move::*;
+
+        match *self {
+            Up => 'U',
+            Down => 'D',
+            Left => 'L',
+            Right => 'R',
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+struct OpenDoors {
+    up: bool,
+    down: bool,
+    left: bool,
+    right: bool,
+}
+
+fn whats_open(passcode: &str, path: &[Move]) -> OpenDoors {
+    let mut a = passcode.to_owned();
+    a.extend(path.iter().map(Move::to_char));
+    let hashed = md5hex(&a);
+    let mut open = hashed.chars().take(4).map(open);
+    OpenDoors {
+        up: open.next().expect("Missing up door"),
+        down: open.next().expect("Missing down door"),
+        left: open.next().expect("Missing left door"),
+        right: open.next().expect("Missing right door"),
+    }
+}
+
+fn main() {
+    println!("Hello, world!");
+}
+
+#[test]
+fn example_1() {
+    assert_eq!(
+        whats_open("hijkl", &[]),
+        OpenDoors {
+            up: true,
+            down: true,
+            left: true,
+            right: false,
+        }
+    );
+}

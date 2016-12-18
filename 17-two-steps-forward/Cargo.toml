@@ -1,0 +1,8 @@
+[package]
+authors = ["Jake Goulding <jake.goulding@gmail.com>"]
+name = "17-two-steps-forward"
+version = "0.1.0"
+
+[dependencies]
+hex = "0.2.0"
+md5 = "0.3.2"

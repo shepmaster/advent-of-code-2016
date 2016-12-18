@@ -1,0 +1,21 @@
+[root]
+name = "17-two-steps-forward"
+version = "0.1.0"
+dependencies = [
+ "hex 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "md5 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "hex"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "md5"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[metadata]
+"checksum hex 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d6a22814455d41612f41161581c2883c0c6a1c41852729b17d5ed88f01e153aa"
+"checksum md5 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "6fce5a83f1379e0a2353a8ac5d15270d417ad36c6ac78ea4d4beae7482e6812d"
