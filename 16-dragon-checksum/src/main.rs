@@ -49,7 +49,8 @@ fn wipe_disk(length: usize, state: &str) -> String {
 }
 
 fn main() {
-    println!("Wiping... {}", wipe_disk(272, "01111001100111011"))
+    println!("Wiping... {}", wipe_disk(272, "01111001100111011"));
+    println!("Wiping... {}", wipe_disk(35651584, "01111001100111011"));
 }
 
 #[test]
