@@ -39,7 +39,12 @@ fn puzzle(discs: &[Disc]) -> Option<usize> {
 fn main() {
     let input = include_str!("input.txt");
     let discs: Result<Vec<Disc>, _> = input.lines().map(str::parse).collect();
-    let discs = discs.expect("Unable to parse discs");
+    let mut discs = discs.expect("Unable to parse discs");
+
+    let time = puzzle(&discs);
+    println!("Drop at {:?}", time);
+
+    discs.push(Disc { positions: 11, current: 0 });
     let time = puzzle(&discs);
     println!("Drop at {:?}", time);
 }
