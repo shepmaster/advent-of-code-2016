@@ -123,9 +123,16 @@ impl Position {
 }
 
 fn puzzle(passcode: &str) -> Vec<Move> {
+    puzzle_full(passcode).0
+}
+
+fn puzzle_full(passcode: &str) -> (Vec<Move>, Vec<Move>) {
     let mut queue = VecDeque::new();
 
     queue.push_back(State { path: Vec::new(), position: Position(0, 0) });
+
+    let mut first = Vec::new();
+    let mut last = Vec::new();
 
     while let Some(step) = queue.pop_front() {
         let doors = whats_open(passcode, &step.path);
@@ -140,14 +147,17 @@ fn puzzle(passcode: &str) -> Vec<Move> {
 
         for new_state in new_states {
             if new_state.position == TARGET_POSITION {
-                return new_state.path;
+                if first.is_empty() {
+                    first = new_state.path.clone();
+                }
+                last = new_state.path;
+            } else {
+                queue.push_back(new_state);
             }
-
-            queue.push_back(new_state);
         }
     }
 
-    Vec::new()
+    (first, last)
 }
 
 fn move_string(moves: &[Move]) -> String {
@@ -155,8 +165,9 @@ fn move_string(moves: &[Move]) -> String {
 }
 
 fn main() {
-    let path = puzzle("udskfozm");
-    println!("{}", move_string(&path));
+    let (first, last) = puzzle_full("udskfozm");
+    println!("{}", move_string(&first));
+    println!("{}", last.len());
 }
 
 #[test]
