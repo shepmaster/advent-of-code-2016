@@ -1,0 +1,7 @@
+[package]
+authors = ["Jake Goulding <jake.goulding@gmail.com>"]
+name = "18-like-a-rogue"
+version = "0.1.0"
+
+[dependencies]
+itertools = "0.5.7"
