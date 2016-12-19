@@ -1,6 +1,9 @@
+#![feature(conservative_impl_trait)]
+
 extern crate itertools;
 
 use std::str::FromStr;
+use std::{fmt, mem};
 
 type Error = Box<::std::error::Error>;
 type Result<T> = ::std::result::Result<T, Error>;
@@ -18,6 +21,15 @@ impl Tile {
             '^' => Tile::Trap,
             _ => return Err(format!("Unknown tile '{}'", c).into()),
         })
+    }
+}
+
+impl fmt::Display for Tile {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Tile::Safe => write!(f, "."),
+            Tile::Trap => write!(f, "^"),
+        }
     }
 }
 
@@ -62,22 +74,38 @@ impl FromStr for Row {
     }
 }
 
-use std::mem;
+impl fmt::Display for Row {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for tile in &self.0 {
+            write!(f, "{}", tile)?;
+        }
+        Ok(())
+    }
+}
 
-fn puzzle(s: &str, row_count: usize) -> Result<usize> {
+fn row_iterator(s: &str) -> Result<impl Iterator<Item = Row>> {
     let row: Row = s.parse()?;
     let rows = itertools::unfold(row, |row| {
         let next = row.step();
         let current = mem::replace(row, next);
         Some(current)
     });
+    Ok(rows)
+}
 
+fn puzzle(s: &str, row_count: usize) -> Result<usize> {
+    let rows = row_iterator(s)?;
     Ok(rows.take(row_count).map(|r| r.safe_rows()).sum())
 }
 
 fn main() {
     let input = include_str!("input.txt");
     println!("There were {:?} spaces", puzzle(input, 40));
+    println!("There were {:?} spaces", puzzle(input, 400_000));
+
+    for row in row_iterator(input).expect("unable to parse input").take(100) {
+        println!("{}", row);
+    }
 }
 
 #[test]
